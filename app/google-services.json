@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "920869784107",
+    "project_id": "draxtn-9f9ac",
+    "storage_bucket": "draxtn-9f9ac.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:920869784107:android:ca8095e9c50c62301db86e",
+        "android_client_info": {
+          "package_name": "com.drax.draxproject"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "920869784107-6kpko6bqiaa4jge2064cj6mskor3isis.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.drax.draxproject",
+            "certificate_hash": "3d7cdefbd3744f9867fbd3d0379342bc786ec18e"
+          }
+        },
+        {
+          "client_id": "920869784107-b4g22f8cobdldfp2pau3dvfcd509eehl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQ89sGDArzR4fvKKSalDahjSgQw6-MpNA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "920869784107-b4g22f8cobdldfp2pau3dvfcd509eehl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

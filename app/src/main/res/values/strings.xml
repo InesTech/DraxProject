@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DraxProject</string>
+    <string name="app_name">DraxPFE</string>
     <string-array name="context_view">
     <item>222</item>
     <item>123</item>

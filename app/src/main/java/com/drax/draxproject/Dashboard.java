@@ -42,7 +42,6 @@ public class Dashboard extends AppCompatActivity {
     String dt;
     ArrayList<String> sapList = new ArrayList<>();
     boolean doubleBackToExitPressedOnce = false;
-    LinearLayout linearsap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +56,6 @@ public class Dashboard extends AppCompatActivity {
         temptotal = findViewById(R.id.temptotal);
         nodata = findViewById(R.id.no_data);
         lineardata = findViewById(R.id.lineardata);
-        linearsap = findViewById(R.id.linearsap);
         final Calendar cldr = Calendar.getInstance();
         int day = cldr.get(Calendar.DAY_OF_MONTH);
         int month = cldr.get(Calendar.MONTH);
@@ -70,6 +68,7 @@ public class Dashboard extends AppCompatActivity {
             dy = '0'+dy;
         dt = dy + "-" + (mnth) + "-" + year;
         date.setText(dy + "/" + (mnth) + "/" + year);
+        getData(dt);
 
         date.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -90,32 +89,11 @@ public class Dashboard extends AppCompatActivity {
                                 if(dayOfMonth<10)
                                     dy = '0'+dy;
                                 dt = dy + "-" + (mnth) + "-" + year;
-                                getData(spinsap.getSelectedItem().toString(),dt);
+                                getData(dt);
                                 date.setText(dy+ "/" + (mnth) + "/" + year);
                             }
                         }, year, month, day);
                 picker.show();
-            }
-        });
-        DatabaseReference dref = FirebaseDatabase.getInstance().getReference("SAPName");
-        dref.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                sapList.clear();
-                if(snapshot.exists()){
-                    for(DataSnapshot snapshot1 : snapshot.getChildren())
-                    {
-                        sapList.add(snapshot1.getValue().toString());
-                    }
-                }else
-                    sapList.add("Liste vide !");
-                spinsap.setAdapter( new ArrayAdapter<>(Dashboard.this, android.R.layout.simple_spinner_dropdown_item,sapList));
-                getData(spinsap.getSelectedItem().toString(),dt);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
             }
         });
 
@@ -125,7 +103,7 @@ public class Dashboard extends AppCompatActivity {
                 ((TextView) adapterView.getChildAt(0)).setTextColor(Color.WHITE);
                 ((TextView) adapterView.getChildAt(0)).setTextSize(15);
                 ((TextView) adapterView.getChildAt(0)).setTypeface(((TextView)adapterView.getChildAt(0)).getTypeface(),Typeface.BOLD);
-                getData(spinsap.getSelectedItem().toString(),dt);
+                getSAP(spinsap.getSelectedItem().toString(),dt);
             }
 
             @Override
@@ -134,8 +112,9 @@ public class Dashboard extends AppCompatActivity {
             }
         });
     }
-    public boolean dateExist(final String date){
-        final boolean[] exist = {false};
+    public void getData(final String date){
+        final boolean[] dateexist = {false};
+        sapList.clear();
         DatabaseReference dref = FirebaseDatabase.getInstance().getReference("Data");
         dref.addValueEventListener(new ValueEventListener() {
             @Override
@@ -143,10 +122,37 @@ public class Dashboard extends AppCompatActivity {
                 if(snapshot.exists()){
                     for (DataSnapshot datasnapshot :snapshot.getChildren()){
                         if(datasnapshot.getKey().equals(date)){
-                            exist[0] = true;
+                            dateexist[0] = true;
+                                for(DataSnapshot snapshot1 : datasnapshot.getChildren())
+                                {
+                                    sapList.add(snapshot1.getKey());
+                                }
+                            if(sapList.isEmpty())
+                                sapList.add("Liste vide !");
+                            spinsap.setAdapter( new ArrayAdapter<>(Dashboard.this, android.R.layout.simple_spinner_dropdown_item,sapList));
+                            String SapName = spinsap.getItemAtPosition(0).toString();
+                            if(datasnapshot.child(SapName).exists()){
+                                tempcollage.setText(datasnapshot.child(SapName).child("Collage").getValue().toString());
+                                temppercage.setText(datasnapshot.child(SapName).child("Percage").getValue().toString());
+                                tempmontage.setText(datasnapshot.child(SapName).child("Montage").getValue().toString());
+                                tempembal.setText(datasnapshot.child(SapName).child("Emballage").getValue().toString());
+                                temptotal.setText(datasnapshot.child(SapName).child("Total").getValue().toString());
+                                nodata.setVisibility(View.GONE);
+                                lineardata.setVisibility(View.VISIBLE);
+
+                            }
+
                         }
 
                     }
+                    if(dateexist[0] == false){
+                        lineardata.setVisibility(View.GONE);
+                        nodata.setVisibility(View.VISIBLE);
+                    }
+
+                }else{
+                    lineardata.setVisibility(View.GONE);
+                    nodata.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -155,9 +161,9 @@ public class Dashboard extends AppCompatActivity {
 
             }
         });
-        return exist[0];
     }
-    public void getData(final String SapName, final String date){
+
+    public void getSAP(final String SapName, final String date){
         final boolean[] dateexist = {false};
         DatabaseReference dref = FirebaseDatabase.getInstance().getReference("Data");
         dref.addValueEventListener(new ValueEventListener() {
@@ -174,13 +180,7 @@ public class Dashboard extends AppCompatActivity {
                                 tempembal.setText(datasnapshot.child(SapName).child("Emballage").getValue().toString());
                                 temptotal.setText(datasnapshot.child(SapName).child("Total").getValue().toString());
                                 nodata.setVisibility(View.GONE);
-                                linearsap.setVisibility(View.VISIBLE);
                                 lineardata.setVisibility(View.VISIBLE);
-
-                            }else{
-                                linearsap.setVisibility(View.GONE);
-                                lineardata.setVisibility(View.VISIBLE);
-                                nodata.setVisibility(View.VISIBLE);
 
                             }
 

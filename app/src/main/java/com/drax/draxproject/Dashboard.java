@@ -42,6 +42,7 @@ public class Dashboard extends AppCompatActivity {
     String dt;
     ArrayList<String> sapList = new ArrayList<>();
     boolean doubleBackToExitPressedOnce = false;
+    LinearLayout linearsap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +57,7 @@ public class Dashboard extends AppCompatActivity {
         temptotal = findViewById(R.id.temptotal);
         nodata = findViewById(R.id.no_data);
         lineardata = findViewById(R.id.lineardata);
+        linearsap = findViewById(R.id.linearsap);
         final Calendar cldr = Calendar.getInstance();
         int day = cldr.get(Calendar.DAY_OF_MONTH);
         int month = cldr.get(Calendar.MONTH);
@@ -172,8 +174,13 @@ public class Dashboard extends AppCompatActivity {
                                 tempembal.setText(datasnapshot.child(SapName).child("Emballage").getValue().toString());
                                 temptotal.setText(datasnapshot.child(SapName).child("Total").getValue().toString());
                                 nodata.setVisibility(View.GONE);
+                                linearsap.setVisibility(View.VISIBLE);
                                 lineardata.setVisibility(View.VISIBLE);
+
                             }else{
+                                linearsap.setVisibility(View.GONE);
+                                lineardata.setVisibility(View.VISIBLE);
+                                nodata.setVisibility(View.VISIBLE);
 
                             }
 

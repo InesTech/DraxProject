@@ -1,18 +1,33 @@
 package com.drax.draxproject;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.DatePickerDialog;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class Dashboard extends AppCompatActivity {
     EditText date;
@@ -24,6 +39,9 @@ public class Dashboard extends AppCompatActivity {
     TextView temptotal;
     TextView nodata;
     LinearLayout lineardata;
+    String dt;
+    ArrayList<String> sapList = new ArrayList<>();
+    boolean doubleBackToExitPressedOnce = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,18 +66,9 @@ public class Dashboard extends AppCompatActivity {
             mnth='0'+mnth;
         if(day<10)
             dy = '0'+dy;
-        String dt = dy + "/" + (mnth) + "/" + year;
-        if(dt.equals("10/06/2022")) {
-            nodata.setVisibility(View.GONE);
-            lineardata.setVisibility(View.VISIBLE);
-
-        }
-        else{
-            lineardata.setVisibility(View.GONE);
-            nodata.setVisibility(View.VISIBLE);
-
-        }
+        dt = dy + "-" + (mnth) + "-" + year;
         date.setText(dy + "/" + (mnth) + "/" + year);
+
         date.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -78,41 +87,43 @@ public class Dashboard extends AppCompatActivity {
                                     mnth='0'+mnth;
                                 if(dayOfMonth<10)
                                     dy = '0'+dy;
-                                String dt = dy + "/" + (mnth) + "/" + year;
-                                if(dt.equals("10/06/2022")) {
-                                    nodata.setVisibility(View.GONE);
-                                    lineardata.setVisibility(View.VISIBLE);
-
-                                }
-                                else{
-                                    lineardata.setVisibility(View.GONE);
-                                    nodata.setVisibility(View.VISIBLE);
-
-                                }
+                                dt = dy + "-" + (mnth) + "-" + year;
+                                getData(spinsap.getSelectedItem().toString(),dt);
                                 date.setText(dy+ "/" + (mnth) + "/" + year);
                             }
                         }, year, month, day);
                 picker.show();
             }
         });
+        DatabaseReference dref = FirebaseDatabase.getInstance().getReference("SAPName");
+        dref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                sapList.clear();
+                if(snapshot.exists()){
+                    for(DataSnapshot snapshot1 : snapshot.getChildren())
+                    {
+                        sapList.add(snapshot1.getValue().toString());
+                    }
+                }else
+                    sapList.add("Liste vide !");
+                spinsap.setAdapter( new ArrayAdapter<>(Dashboard.this, android.R.layout.simple_spinner_dropdown_item,sapList));
+                getData(spinsap.getSelectedItem().toString(),dt);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
         spinsap.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                if(i==0)
-                {
-                    tempcollage.setText("00:10:39");
-                    temppercage.setText("00:14:30");
-                    tempmontage.setText("00:57:12");
-                    tempembal.setText("00:31:11");
-                    temptotal.setText("01:53:32");
-                }else if(i==1)
-                {
-                    tempcollage.setText("00:11:20");
-                    temppercage.setText("00:12:40");
-                    tempmontage.setText("01:01:10");
-                    tempembal.setText("00:30:05");
-                    temptotal.setText("01:55:15");
-                }
+                ((TextView) adapterView.getChildAt(0)).setTextColor(Color.WHITE);
+                ((TextView) adapterView.getChildAt(0)).setTextSize(15);
+                ((TextView) adapterView.getChildAt(0)).setTypeface(((TextView)adapterView.getChildAt(0)).getTypeface(),Typeface.BOLD);
+                getData(spinsap.getSelectedItem().toString(),dt);
             }
 
             @Override
@@ -120,5 +131,89 @@ public class Dashboard extends AppCompatActivity {
 
             }
         });
+    }
+    public boolean dateExist(final String date){
+        final boolean[] exist = {false};
+        DatabaseReference dref = FirebaseDatabase.getInstance().getReference("Data");
+        dref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(snapshot.exists()){
+                    for (DataSnapshot datasnapshot :snapshot.getChildren()){
+                        if(datasnapshot.getKey().equals(date)){
+                            exist[0] = true;
+                        }
+
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+        return exist[0];
+    }
+    public void getData(final String SapName, final String date){
+        final boolean[] dateexist = {false};
+        DatabaseReference dref = FirebaseDatabase.getInstance().getReference("Data");
+        dref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(snapshot.exists()){
+                    for (DataSnapshot datasnapshot :snapshot.getChildren()){
+                        if(datasnapshot.getKey().equals(date)){
+                            dateexist[0] = true;
+                            if(datasnapshot.child(SapName).exists()){
+                                tempcollage.setText(datasnapshot.child(SapName).child("Collage").getValue().toString());
+                                temppercage.setText(datasnapshot.child(SapName).child("Percage").getValue().toString());
+                                tempmontage.setText(datasnapshot.child(SapName).child("Montage").getValue().toString());
+                                tempembal.setText(datasnapshot.child(SapName).child("Emballage").getValue().toString());
+                                temptotal.setText(datasnapshot.child(SapName).child("Total").getValue().toString());
+                                nodata.setVisibility(View.GONE);
+                                lineardata.setVisibility(View.VISIBLE);
+                            }else{
+
+                            }
+
+                        }
+
+                    }
+                    if(dateexist[0] == false){
+                        lineardata.setVisibility(View.GONE);
+                        nodata.setVisibility(View.VISIBLE);
+                    }
+
+                }else{
+                    lineardata.setVisibility(View.GONE);
+                    nodata.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+    @Override
+    public void onBackPressed() {
+            if (doubleBackToExitPressedOnce) {
+                super.onBackPressed();
+                return;
+            }
+
+            this.doubleBackToExitPressedOnce = true;
+            Toast.makeText(this, "Veuillez faire appuyer/glisser le doigt à nouveau.", Toast.LENGTH_SHORT).show();
+
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+
+                @Override
+                public void run() {
+                    doubleBackToExitPressedOnce = false;
+                }
+            }, 2000);
+
     }
 }
